@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "*"
   pull_request:
     branches:
       - main
@@ -12,7 +14,7 @@ jobs:
   commitlint:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,6 +34,94 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '>=1.20.0'
+          go-version: ">=1.20.0"
 
       - uses: pre-commit/action@v3.0.1
+
+  test:
+    name: Test branch-name
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - ubuntu-latest
+          - ubuntu-22.04
+          - ubuntu-20.04
+          - windows-latest
+          - windows-2025
+          - macos-latest
+          - macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+
+      - name: Run test
+        id: branch-name
+        uses: ./
+
+      - name: Show output
+        run: |
+          echo "Default Branch: ${{ steps.branch-name.outputs.default_branch }}"
+          echo "Current Branch: ${{ steps.branch-name.outputs.current_branch }}"
+          echo "Base Ref: ${{ steps.branch-name.outputs.base_ref_branch }}"
+          echo "Head Ref: ${{ steps.branch-name.outputs.head_ref_branch }}"
+          echo "Ref: ${{ steps.branch-name.outputs.ref_branch }}"
+          echo "Is Default: ${{ steps.branch-name.outputs.is_default }}"
+          echo "Is Tag: ${{ steps.branch-name.outputs.is_tag }}"
+          echo "Current tag: ${{ steps.branch-name.outputs.tag }}"
+
+      - name: Test is_default output for pull request
+        if: github.event_name == 'pull_request' && steps.branch-name.outputs.is_tag == 'false' && steps.branch-name.outputs.is_default != 'false'
+        run: |
+          echo "Is default is invalid: ${{ steps.branch-name.outputs.is_default }}"
+          exit 1
+
+      - name: Test is_default output for non pull request
+        if: github.event_name != 'pull_request' && steps.branch-name.outputs.is_tag == 'false' && steps.branch-name.outputs.is_default != 'true'
+        run: |
+          echo "Is default is invalid: ${{ steps.branch-name.outputs.is_default }}"
+          exit 1
+
+      - name: Test base_ref_branch output
+        if: github.event_name == 'pull_request' && steps.branch-name.outputs.is_tag == 'false' && !steps.branch-name.outputs.base_ref_branch
+        run: |
+          echo "Base ref unset: ${{ steps.branch-name.outputs.base_ref_branch }}"
+          exit 1
+
+      - name: Test head_ref output
+        if: github.event_name == 'pull_request' && steps.branch-name.outputs.is_tag == 'false' && !steps.branch-name.outputs.head_ref_branch
+        run: |
+          echo "Head ref unset: ${{ steps.branch-name.outputs.head_ref_branch }}"
+          exit 1
+
+      - name: Test ref_branch output
+        if: "!steps.branch-name.outputs.ref_branch && steps.branch-name.outputs.is_tag == 'false'"
+        run: |
+          echo "Ref unset: ${{ steps.branch-name.outputs.ref_branch }}"
+          exit 1
+
+      - name: Test current_branch output for pull_request event.
+        if: github.event_name == 'pull_request' && steps.branch-name.outputs.is_tag == 'false' && !steps.branch-name.outputs.current_branch
+        run: |
+          echo "Current branch unset: ${{ steps.branch-name.outputs.current_branch }}"
+          exit 1
+
+      - name: Test current_branch output for push event.
+        if: github.event_name == 'push' && steps.branch-name.outputs.is_tag == 'false' && !steps.branch-name.outputs.current_branch
+        run: |
+          echo "Current branch unset: ${{ steps.branch-name.outputs.current_branch }}"
+          exit 1
+
+      - name: Test current_branch output for tag based push event.
+        if: github.event_name == 'push' && steps.branch-name.outputs.is_tag == 'true' && !steps.branch-name.outputs.base_ref_branch
+        run: |
+          echo "Base ref unset: ${{ steps.branch-name.outputs.base_ref_branch }}"
+          exit 1
+
+      - name: Test tag output for tag based push event.
+        if: github.event_name == 'push' && steps.branch-name.outputs.is_tag == 'true' && !steps.branch-name.outputs.tag
+        run: |
+          echo "Current tag unset: ${{ steps.branch-name.outputs.tag }}"
+          exit 1
