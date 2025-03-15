@@ -3,7 +3,7 @@
 > This is forked from `tj-actions/branch-names` after it was removed. This maintains
 > the same interface so can be used as a drop-in replacement
 
-Get a branch or tag name without the /ref/\* prefix.
+Get a branch or tag name without the `/ref/\*` prefix.
 
 <!-- toc -->
 
@@ -41,7 +41,7 @@ Get a branch or tag name without the /ref/\* prefix.
     steps:
       - name: Get branch names.
         id: branch-names
-        uses: tj-actions/branch-names@v8
+        uses: mrsimonemms/get-branch-name-action@v1
 
       - name: Running on the default branch.
         if: steps.branch-names.outputs.is_default == 'true'
@@ -72,7 +72,7 @@ Support this project with a ⭐
 ## Inputs
 
 ```yaml
-- uses: tj-actions/branch-names@v8
+- uses: mrsimonemms/get-branch-name-action@v1
   id: branch-names
   with:
     # The prefix that should be stripped from the tag
@@ -109,7 +109,7 @@ on:
     steps:
       - name: Get branch names
         id: branch-names
-        uses: tj-actions/branch-names@v8
+        uses: mrsimonemms/get-branch-name-action@v1
 
       - name: Current branch names
         run: |
@@ -151,7 +151,7 @@ on:
     steps:
       - name: Get branch names
         id: branch-names
-        uses: tj-actions/branch-names@v8
+        uses: mrsimonemms/get-branch-name-action@v1
 
       - name: Current branch names
         run: |
@@ -203,7 +203,7 @@ on:
     steps:
       - name: Get branch names
         id: branch-names
-        uses: tj-actions/branch-names@v8
+        uses: mrsimonemms/get-branch-name-action@v1
         with:
           strip_tag_prefix: v # Optionally strip the leading `v` from the tag.
 
