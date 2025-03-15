@@ -1,4 +1,4 @@
-name: get-branch-name
+name: get-branch-info
 author: Simon Emms <simon@simonemms.com>
 description: Get branch information. A drop-in replacement for tj-actions/branch-names
 branding:
